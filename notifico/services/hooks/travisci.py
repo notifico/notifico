@@ -1,38 +1,37 @@
-# -*- coding: utf8 -*-
-__all__ = ('TravisHook',)
-
 import json
 from hashlib import sha256
 
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico.services.hooks import HookService
 from notifico.services.hooks.github import GithubHook
 
 
 class TravisConfigForm(wtf.Form):
-    gh_user = wtf.TextField('GitHub username', validators=[
-        wtf.Required(),
-        wtf.Length(max=40)
+    gh_user = wtf_fields.TextField('GitHub username', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(max=40)
     ], description=(
         'Case-sensitive GitHub username of repository owner.'
     ))
-    repo_name = wtf.TextField('Repo name', validators=[
-        wtf.Required(),
-        wtf.Length(max=100)
+    repo_name = wtf_fields.TextField('Repo name', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(max=100)
     ], description=(
         'Case-sensitive name of repository.'
     ))
-    token = wtf.TextField('Travis Token', validators=[
-        wtf.Required(),
-        wtf.Length(max=1024)
+    token = wtf_fields.TextField('Travis Token', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(max=1024)
     ], description=(
         'Used to authenticate incoming webhooks.<br>'
         'Can be found on your '
         '<a href="https://travis-ci.org/profile/">Travis CI profile page</a>.'
     ))
-    use_colors = wtf.BooleanField('Use Colors', validators=[
-        wtf.Optional()
+    use_colors = wtf_fields.BooleanField('Use Colors', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, commit messages will include minor mIRC coloring.'
     ))

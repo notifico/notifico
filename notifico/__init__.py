@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+import importlib
 from functools import wraps
 
 from redis import Redis
@@ -50,7 +50,7 @@ def group_required(name):
     return _wrap
 
 
-def create_instance():
+def create_app():
     """
     Construct a new Flask instance and return it.
     """
@@ -92,13 +92,18 @@ def create_instance():
             'key_prefix': 'cache_'
         }
     })
-    # Attach Flask-Mail to our application instance.
     mail.init_app(app)
-    # Attach Flask-SQLAlchemy to our application instance.
     db.init_app(app)
 
     # Update celery's configuration with our application config.
     celery.config_from_object(app.config)
+
+    app.enabled_hooks = {}
+    for enabled_hook in app.config['ENABLED_HOOKS']:
+        module_path, hook_class = enabled_hook.rsplit(':')
+        module = importlib.import_module(module_path)
+        hook = getattr(module, hook_class)
+        app.enabled_hooks[hook.SERVICE_ID] = hook
 
     # Import and register all of our blueprints.
     from notifico.views.account import account

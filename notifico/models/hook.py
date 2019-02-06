@@ -1,11 +1,10 @@
-# -*- coding: utf8 -*-
-__all__ = ('Hook',)
 import os
 import base64
 import datetime
 
+from flask import current_app
+
 from notifico import db
-from notifico.services.hooks import HookService
 
 
 class Hook(db.Model):
@@ -43,7 +42,7 @@ class Hook(db.Model):
 
     @property
     def hook(self):
-        return HookService.services[self.service_id]
+        return current_app.enabled_hooks[self.service_id]
 
     def absolute_url(self):
         hook = self.hook

@@ -15,10 +15,10 @@ if __name__ == '__main__':
         zip_safe=False,
         install_requires=[
             'flask',
-            'Flask-WTF==0.8.4',
+            'Flask-WTF',
             'Flask-Gravatar',
             'Flask-SQLAlchemy',
-            'Flask-XML-RPC',
+            'flask-xml-rpc-re',
             'Flask-Mail',
             'Flask-Caching',
             'sqlalchemy',

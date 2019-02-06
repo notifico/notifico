@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 from flask import (
     Blueprint,
     g,
@@ -9,6 +8,8 @@ from flask import (
     abort
 )
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico import db, user_required, group_required
 from notifico.models import Group, Project, Channel, Hook, User
@@ -17,12 +18,12 @@ admin = Blueprint('admin', __name__, template_folder='templates')
 
 
 class UserPasswordForm(wtf.Form):
-    password = wtf.PasswordField('Password', validators=[
-        wtf.Required(),
-        wtf.Length(5),
-        wtf.EqualTo('confirm', 'Passwords do not match.'),
+    password = wtf_fields.PasswordField('Password', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(5),
+        wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
-    confirm = wtf.PasswordField('Confirm Password')
+    confirm = wtf_fields.PasswordField('Confirm Password')
 
 
 @admin.route('/make')

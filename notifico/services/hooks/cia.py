@@ -1,12 +1,10 @@
-# -*- coding: utf8 -*-
-__all__ = ('CIAHook',)
 import xmltodict
 
 from flask import url_for, request, abort
 import flask_wtf as wtf
-# Continue using old flask ext naming convention for XML-RPC 
-# since XML-RPC doesn't support new one
-from flaskext.xmlrpc import XMLRPCHandler
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
+from flask_xmlrpcre.xmlrpcre import XMLRPCHandler
 
 from notifico import db
 from notifico.services.hooks import HookService
@@ -17,8 +15,8 @@ hub = handler.namespace('hub')
 
 
 class CIAConfigForm(wtf.Form):
-    use_colors = wtf.BooleanField('Use Colors', validators=[
-        wtf.Optional()
+    use_colors = wtf_fields.BooleanField('Use Colors', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, messages will include minor mIRC coloring.'
     ))
@@ -53,7 +51,6 @@ class CIAHook(HookService):
         revision = body['commit'].get('revision')
         author = body['commit'].get('author')
         log = body['commit'].get('log')
-        url = body['commit'].get('url')
         files = body['commit'].get('files', {}).get('file')
 
         line = []

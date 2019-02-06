@@ -1,105 +1,108 @@
-# -*- coding: utf-8 -*-
 from flask import g
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico.models import User
 from notifico.services import reset
 
 
 class UserRegisterForm(wtf.Form):
-    username = wtf.TextField('Username', validators=[
-        wtf.Required(),
-        wtf.Length(min=2, max=50),
-        wtf.Regexp('^[a-zA-Z0-9_]*$', message=(
+    username = wtf_fields.TextField('Username', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(min=2, max=50),
+        wtf_validators.Regexp('^[a-zA-Z0-9_]*$', message=(
             'Username must only contain a to z, 0 to 9, and underscores.'
         ))
     ], description=(
         'Your username is public and used as part of your project name.'
     ))
-    email = wtf.TextField('Email', validators=[
-        wtf.Required(),
-        wtf.validators.Email()
+    email = wtf_fields.TextField('Email', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Email()
     ])
-    password = wtf.PasswordField('Password', validators=[
-        wtf.Required(),
-        wtf.Length(5),
-        wtf.EqualTo('confirm', 'Passwords do not match.'),
+    password = wtf_fields.PasswordField('Password', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(5),
+        wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
-    confirm = wtf.PasswordField('Confirm Password')
+    confirm = wtf_fields.PasswordField('Confirm Password')
 
     def validate_username(form, field):
         from notifico.views.account import _reserved
 
         username = field.data.strip().lower()
         if username in _reserved or User.username_exists(username):
-            raise wtf.ValidationError(
+            raise wtf_validators.ValidationError(
                 'Sorry, but that username is taken.'
             )
 
 
 class UserLoginForm(wtf.Form):
-    username = wtf.TextField('Username', validators=[
-        wtf.Required()
+    username = wtf_fields.TextField('Username', validators=[
+        wtf_validators.Required()
     ])
-    password = wtf.PasswordField('Password', validators=[
-        wtf.Required()
+    password = wtf_fields.PasswordField('Password', validators=[
+        wtf_validators.Required()
     ])
 
     def validate_password(form, field):
         if not User.login(form.username.data, field.data):
-            raise wtf.ValidationError('Incorrect username and/or password.')
+            raise wtf_validators.ValidationError(
+                'Incorrect username and/or password.'
+            )
 
 
 class UserPasswordForm(wtf.Form):
-    old = wtf.PasswordField('Old Password', validators=[
-        wtf.Required()
+    old = wtf_fields.PasswordField('Old Password', validators=[
+        wtf_validators.Required()
     ])
-    password = wtf.PasswordField('Password', validators=[
-        wtf.Required(),
-        wtf.Length(5),
-        wtf.EqualTo('confirm', 'Passwords do not match.'),
+    password = wtf_fields.PasswordField('Password', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(5),
+        wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
-    confirm = wtf.PasswordField('Confirm Password')
+    confirm = wtf_fields.PasswordField('Confirm Password')
 
     def validate_old(form, field):
         if not User.login(g.user.username, field.data):
-            raise wtf.ValidationError('Old Password is incorrect.')
+            raise wtf_validators.ValidationError('Old Password is incorrect.')
 
 
 class UserDeleteForm(wtf.Form):
-    password = wtf.PasswordField('Password', validators=[
-        wtf.Required(),
-        wtf.Length(5),
-        wtf.EqualTo('confirm', 'Passwords do not match.'),
+    password = wtf_fields.PasswordField('Password', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(5),
+        wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
-    confirm = wtf.PasswordField('Confirm Password')
+    confirm = wtf_fields.PasswordField('Confirm Password')
 
     def validate_password(form, field):
         if not User.login(g.user.username, field.data):
-            raise wtf.ValidationError('Password is incorrect.')
+            raise wtf_validators.ValidationError('Password is incorrect.')
 
 
 class UserForgotForm(wtf.Form):
-    username = wtf.TextField('Username', validators=[
-        wtf.Required()
+    username = wtf_fields.TextField('Username', validators=[
+        wtf_validators.Required()
     ])
 
     def validate_username(form, field):
         user = User.by_username(field.data)
         if not user:
-            raise wtf.ValidationError('No such user exists.')
+            raise wtf_validators.ValidationError('No such user exists.')
 
         if reset.count_tokens(user) >= 5:
-            raise wtf.ValidationError(
+            raise wtf_validators.ValidationError(
                 'You may not reset your password more than 5 times'
                 ' in one day.'
             )
 
 
 class UserResetForm(wtf.Form):
-    password = wtf.PasswordField('New Password', validators=[
-        wtf.Required(),
-        wtf.Length(5),
-        wtf.EqualTo('confirm', 'Passwords do not match.'),
+    password = wtf_fields.PasswordField('New Password', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(5),
+        wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
-    confirm = wtf.PasswordField('Confirm Password')
+    confirm = wtf_fields.PasswordField('Confirm Password')

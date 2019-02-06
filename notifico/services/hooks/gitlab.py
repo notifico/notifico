@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-__all__ = ('GitlabHook',)
-
 import re
-import json
 
 import flask_wtf as wtf
 from functools import wraps
-from wtforms.fields import SelectMultipleField
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico.services.hooks import HookService
+
 
 def simplify_payload(payload):
     result = {
@@ -41,6 +39,7 @@ def simplify_payload(payload):
 
     return result
 
+
 def is_event_allowed(config, category, event):
     if not config or not config.get('events'):
         # not whitelisting events, show everything
@@ -50,6 +49,7 @@ def is_event_allowed(config, category, event):
     event_name = '{0}_{1}'.format(category, event) if event else category
 
     return event_name in config['events']
+
 
 def action_filter(category, action_key='action'):
     def decorator(f):
@@ -62,15 +62,17 @@ def action_filter(category, action_key='action'):
         return wrapper
     return decorator
 
-class EventSelectField(SelectMultipleField):
+
+class EventSelectField(wtf_fields.SelectMultipleField):
     def __call__(self, *args, **kwargs):
         kwargs['style'] = 'height: 25em; width: auto;'
-        return SelectMultipleField.__call__(self, *args, **kwargs)
+        return wtf_fields.SelectMultipleField.__call__(self, *args, **kwargs)
+
 
 class GitlabConfigForm(wtf.Form):
-    branches = wtf.TextField('Branches', validators=[
-        wtf.Optional(),
-        wtf.Length(max=1024)
+    branches = wtf_fields.TextField('Branches', validators=[
+        wtf_validators.Optional(),
+        wtf_validators.Length(max=1024)
     ], description=(
         'A comma-separated of branches to forward, or blank for all.'
         ' Ex: "master, dev"'
@@ -111,33 +113,34 @@ class GitlabConfigForm(wtf.Form):
         ('wiki_create',                'Wiki: created page'),
         ('wiki_edit',                  'Wiki: edited page')
     ])
-    use_colors = wtf.BooleanField('Use Colors', validators=[
-        wtf.Optional()
+    use_colors = wtf_fields.BooleanField('Use Colors', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, commit messages will include minor mIRC coloring.'
     ))
-    show_branch = wtf.BooleanField('Show Branch Name', validators=[
-        wtf.Optional()
+    show_branch = wtf_fields.BooleanField('Show Branch Name', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, commit messages will include the branch name.'
     ))
-    show_tags = wtf.BooleanField('Show Tags', validators=[
-        wtf.Optional()
+    show_tags = wtf_fields.BooleanField('Show Tags', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, changes to tags will be shown.'
     ))
-    full_project_name = wtf.BooleanField('Full Project Name', validators=[
-        wtf.Optional()
+    full_project_name = wtf_fields.BooleanField('Full Project Name', validators=[
+        wtf_validators.Optional()
     ], default=False, description=(
         'If checked, show the full gitlab project name (ex: tktech/notifico)'
         ' instead of the Notifico project name (ex: notifico)'
     ))
-    title_only = wtf.BooleanField('Title Only', validators=[
-        wtf.Optional()
+    title_only = wtf_fields.BooleanField('Title Only', validators=[
+        wtf_validators.Optional()
     ], default=False, description=(
         'If checked, only the commits title (the commit message up to'
         ' the first new line) will be emitted.'
     ))
+
 
 def _create_push_summary(project_name, j, config):
     original = j['original']
@@ -197,6 +200,7 @@ def _create_push_summary(project_name, j, config):
 
     return u' '.join(line)
 
+
 def _create_commit_summary(project_name, j, config):
     title_only = config.get('title_only', False)
 
@@ -234,6 +238,7 @@ def _create_commit_summary(project_name, j, config):
 
         yield u' '.join(line)
 
+
 def _create_push_final_summary(project_name, j, config):
     original = j['original']
     line_limit = config.get('line_limit', 3)
@@ -250,6 +255,7 @@ def _create_push_final_summary(project_name, j, config):
     ))
 
     return u' '.join(line)
+
 
 class GitlabHook(HookService):
     SERVICE_NAME = 'Gitlab'

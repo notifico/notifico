@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""__init__.py
-
-Project related views, such as project creation and details.
-"""
 from functools import wraps
 
 from flask import (
@@ -13,65 +7,66 @@ from flask import (
     redirect,
     url_for,
     abort,
-    request
+    request,
+    current_app
 )
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico import db, user_required
 from notifico.models import User, Project, Hook, Channel
-from notifico.services.hooks import HookService
 
 projects = Blueprint('projects', __name__, template_folder='templates')
 
 
 class ProjectDetailsForm(wtf.Form):
-    name = wtf.TextField('Project Name', validators=[
-        wtf.Required(),
-        wtf.Length(1, 50),
-        wtf.Regexp(r'^[a-zA-Z0-9_\-\.]*$', message=(
+    name = wtf_fields.TextField('Project Name', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(1, 50),
+        wtf_validators.Regexp(r'^[a-zA-Z0-9_\-\.]*$', message=(
             'Project name must only contain a to z, 0 to 9, dashes'
             ' and underscores.'
         ))
     ])
-    public = wtf.BooleanField('Public', validators=[
-    ], default=True)
-    website = wtf.TextField('Project URL', validators=[
-        wtf.Optional(),
-        wtf.Length(max=1024),
-        wtf.validators.URL()
+    public = wtf_fields.BooleanField('Public', default=True)
+    website = wtf_fields.TextField('Project URL', validators=[
+        wtf_validators.Optional(),
+        wtf_validators.Length(max=1024),
+        wtf_validators.URL()
     ])
 
 
 class HookDetailsForm(wtf.Form):
-    service_id = wtf.SelectField('Service', validators=[
-        wtf.Required()
+    service_id = wtf_fields.SelectField('Service', validators=[
+        wtf_validators.Required()
     ], coerce=int)
 
 
 class PasswordConfirmForm(wtf.Form):
-    password = wtf.PasswordField('Password', validators=[
-        wtf.Required()
+    password = wtf_fields.PasswordField('Password', validators=[
+        wtf_validators.Required()
     ])
 
     def validate_password(form, field):
         if not User.login(g.user.username, field.data):
-            raise wtf.ValidationError('Your password is incorrect.')
+            raise wtf_validators.ValidationError('Your password is incorrect.')
 
 
 class ChannelDetailsForm(wtf.Form):
-    channel = wtf.TextField('Channel', validators=[
-        wtf.Required(),
-        wtf.Length(min=1, max=80)
+    channel = wtf_fields.TextField('Channel', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(min=1, max=80)
     ])
-    host = wtf.TextField('Host', validators=[
-        wtf.Required(),
-        wtf.Length(min=1, max=255)
+    host = wtf_fields.TextField('Host', validators=[
+        wtf_validators.Required(),
+        wtf_validators.Length(min=1, max=255)
     ], default='chat.freenode.net')
-    port = wtf.IntegerField('Port', validators=[
-        wtf.NumberRange(1024, 66552)
+    port = wtf_fields.IntegerField('Port', validators=[
+        wtf_validators.NumberRange(1024, 66552)
     ], default=6667)
-    ssl = wtf.BooleanField('Use SSL', default=False)
-    public = wtf.BooleanField('Public', default=True, description=(
+    ssl = wtf_fields.BooleanField('Use SSL', default=False)
+    public = wtf_fields.BooleanField('Public', default=True, description=(
         'Allow others to see that this channel exists.'
     ))
 
@@ -126,7 +121,8 @@ def dashboard(u):
         # display public projects.
         projects = projects.filter_by(public=True)
 
-    return render_template('dashboard.html',
+    return render_template(
+        'dashboard.html',
         user=u,
         is_owner=is_owner,
         projects=projects,
@@ -204,7 +200,8 @@ def edit_project(u, p):
             db.session.commit()
             return redirect(url_for('.dashboard', u=u.username))
 
-    return render_template('edit_project.html',
+    return render_template(
+        'edit_project.html',
         project=p,
         form=form
     )
@@ -269,7 +266,7 @@ def new_hook(u, p, sid):
         # (403 Forbidden)
         return abort(403)
 
-    hook = HookService.services.get(sid)
+    hook = current_app.enabled_hooks.get(sid)
     form = hook.form()
     if form:
         form = form()
@@ -287,9 +284,10 @@ def new_hook(u, p, sid):
         db.session.commit()
         return redirect(url_for('.details', p=p.name, u=u.username))
 
-    return render_template('new_hook.html',
+    return render_template(
+        'new_hook.html',
         project=p,
-        services=HookService.services,
+        services=current_app.enabled_hooks,
         service=hook,
         form=form
     )
@@ -328,9 +326,10 @@ def edit_hook(u, p, hid):
     elif form:
         hook_service.load_form(form, h.config)
 
-    return render_template('edit_hook.html',
+    return render_template(
+        'edit_hook.html',
         project=p,
-        services=HookService.services,
+        services=current_app.enabled_hooks,
         service=hook_service,
         form=form
     )
@@ -354,7 +353,7 @@ def hook_receive(pid, key):
         Project.message_count: Project.message_count + 1
     })
 
-    hook = HookService.services.get(h.service_id)
+    hook = current_app.enabled_hooks.get(h.service_id)
     if hook is None:
         # TODO: This should be logged somewhere.
         return ''
@@ -388,7 +387,8 @@ def delete_hook(u, p, hid):
         db.session.commit()
         return redirect(url_for('.details', p=p.name, u=u.username))
 
-    return render_template('delete_hook.html',
+    return render_template(
+        'delete_hook.html',
         project=p,
         hook=h
     )
@@ -431,7 +431,8 @@ def new_channel(u, p):
                 'You cannot have a project in the same channel twice.'
             )]
 
-    return render_template('new_channel.html',
+    return render_template(
+        'new_channel.html',
         project=p,
         form=form
     )
@@ -464,7 +465,8 @@ def delete_channel(u, p, cid):
         db.session.commit()
         return redirect(url_for('.details', p=p.name, u=u.username))
 
-    return render_template('delete_channel.html',
+    return render_template(
+        'delete_channel.html',
         project=c.project,
         channel=c
     )

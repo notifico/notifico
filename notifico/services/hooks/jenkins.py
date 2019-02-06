@@ -1,39 +1,38 @@
-# -*- coding: utf8 -*-
-__all__ = ('JenkinsHook',)
-
 import json
 import urllib
 
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico.services.hooks import HookService
 
 
 class JenkinsConfigForm(wtf.Form):
-    phase = wtf.SelectMultipleField('Phase',
+    phase = wtf_fields.SelectMultipleField(
+        'Phase',
         default=['finalized'],
         choices=[
             ('started', 'Started'),
             ('completed', 'Completed'),
             ('finalized', 'Finalized')
         ],
-        description=(
-            'Print messages for selected fields.'
-    ))
+        description='Print messages for selected fields.'
+    )
 
-    status = wtf.SelectMultipleField('Status',
+    status = wtf_fields.SelectMultipleField(
+        'Status',
         default=['success', 'unstable', 'failure'],
         choices=[
             ('success', 'Success'),
             ('unstable', 'Unstable'),
             ('failure', 'Failure')
         ],
-        description=(
-            'Print messages for selected fields.'
-    ))
+        description='Print messages for selected fields.'
+    )
 
-    use_colors = wtf.BooleanField('Use Colors', validators=[
-        wtf.Optional()
+    use_colors = wtf_fields.BooleanField('Use Colors', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, messages will include minor mIRC coloring.'
     ))

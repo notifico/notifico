@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-__all__ = ('Project',)
 import datetime
 
 from sqlalchemy import or_

@@ -1,19 +1,17 @@
-# -*- coding: utf8 -*-
-__all__ = ('AppVeyorHook',)
-
-import json
-from hashlib import sha256
-
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 
 from notifico.services.hooks import HookService
 
+
 class AppVeyorConfigForm(wtf.Form):
-    use_colors = wtf.BooleanField('Use Colors', validators=[
-        wtf.Optional()
+    use_colors = wtf_fields.BooleanField('Use Colors', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, commit messages will include minor mIRC coloring.'
     ))
+
 
 class AppVeyorHook(HookService):
     """
@@ -31,10 +29,10 @@ class AppVeyorHook(HookService):
         payload = request.get_json()
         if not payload:
             return
-        
+
         # event_name = payload['eventName']
         event_data = payload['eventData']
-        
+
         strip = not hook.config.get('use_colors', True)
 
         summary = cls._create_summary(event_data)
@@ -61,9 +59,9 @@ class AppVeyorHook(HookService):
         """
         Create and return a one-line summary of the build
         """
-        if payload['failed'] == True:
+        if payload['failed']:
             status_colour = HookService.colors['RED']
-        elif payload['passed'] == True:
+        elif payload['passed']:
             status_colour = HookService.colors['GREEN']
 
         lines = []
@@ -87,14 +85,14 @@ class AppVeyorHook(HookService):
             G=HookService.colors['GREEN'],
             R=HookService.colors['RESET']
         ))
-        
-        if payload['isPullRequest'] == True:
+
+        if payload['isPullRequest']:
             lines.append(u'(pull request {G}#{n}{R})'.format(
                 n=payload['pullRequestId'],
                 G=HookService.colors['GREEN'],
                 R=HookService.colors['RESET']
             ))
-        
+
         line = u' '.join(lines)
         return cls._prefix_line(line, payload)
 

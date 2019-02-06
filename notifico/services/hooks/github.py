@@ -1,13 +1,11 @@
-# -*- coding: utf8 -*-
-__all__ = ('GithubHook',)
-
 import re
 import json
 import requests
 
 import flask_wtf as wtf
+from wtforms import fields as wtf_fields
+from wtforms import validators as wtf_validators
 from functools import wraps
-from wtforms.fields import SelectMultipleField
 
 from notifico.services.hooks import HookService
 
@@ -56,6 +54,7 @@ def simplify_payload(payload):
 
     return result
 
+
 def is_event_allowed(config, category, event):
     if not config or not config.get('events'):
         # not whitelisting events, show everything
@@ -65,6 +64,7 @@ def is_event_allowed(config, category, event):
     event_name = '{0}_{1}'.format(category, event) if event else category
 
     return event_name in config['events']
+
 
 def action_filter(category, action_key='action'):
     def decorator(f):
@@ -85,15 +85,17 @@ def action_filter(category, action_key='action'):
         return wrapper
     return decorator
 
-class EventSelectField(SelectMultipleField):
+
+class EventSelectField(wtf_fields.SelectMultipleField):
     def __call__(self, *args, **kwargs):
         kwargs['style'] = 'height: 25em; width: auto;'
-        return SelectMultipleField.__call__(self, *args, **kwargs)
+        return wtf_fields.SelectMultipleField.__call__(self, *args, **kwargs)
+
 
 class GithubConfigForm(wtf.Form):
-    branches = wtf.TextField('Branches', validators=[
-        wtf.Optional(),
-        wtf.Length(max=1024)
+    branches = wtf_fields.TextField('Branches', validators=[
+        wtf_validators.Optional(),
+        wtf_validators.Length(max=1024)
     ], description=(
         'A comma-separated list of branches to forward, or blank for all.'
         ' Ex: "master, dev"'
@@ -141,44 +143,55 @@ class GithubConfigForm(wtf.Form):
         ('gollum_created',             'Wiki: created page'),
         ('gollum_edited',              'Wiki: edited page'),
     ])
-    use_colors = wtf.BooleanField('Use Colors', validators=[
-        wtf.Optional()
+    use_colors = wtf_fields.BooleanField('Use Colors', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, commit messages will include minor mIRC coloring.'
     ))
-    show_branch = wtf.BooleanField('Show Branch Name', validators=[
-        wtf.Optional()
+    show_branch = wtf_fields.BooleanField('Show Branch Name', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, commit messages will include the branch name.'
     ))
-    show_tags = wtf.BooleanField('Show Tags', validators=[
-        wtf.Optional()
+    show_tags = wtf_fields.BooleanField('Show Tags', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, changes to tags will be shown.'
     ))
-    prefer_username = wtf.BooleanField('Prefer Usernames', validators=[
-        wtf.Optional()
+    prefer_username = wtf_fields.BooleanField('Prefer Usernames', validators=[
+        wtf_validators.Optional()
     ], default=True, description=(
         'If checked, show github usernames instead of commiter name when'
         ' possible.'
     ))
-    full_project_name = wtf.BooleanField('Full Project Name', validators=[
-        wtf.Optional()
-    ], default=False, description=(
-        'If checked, show the full GitHub project name (ex: notifico/notifico)'
-        ' instead of the Notifico project name (ex: notifico)'
-    ))
-    title_only = wtf.BooleanField('Title Only', validators=[
-        wtf.Optional()
+    full_project_name = wtf_fields.BooleanField(
+        'Full Project Name',
+        validators=[
+            wtf_validators.Optional()
+        ],
+        default=False,
+        description=(
+            'If checked, show the full GitHub project name '
+            '(ex: notifico/notifico) instead of the Notifico project '
+            'name (ex: notifico)'
+        )
+    )
+    title_only = wtf_fields.BooleanField('Title Only', validators=[
+        wtf_validators.Optional()
     ], default=False, description=(
         'If checked, only the commits title (the commit message up to'
         ' the first new line) will be emitted.'
     ))
-    distinct_only = wtf.BooleanField('Distinct Commits Only', validators=[
-        wtf.Optional()
-    ], default=True, description=(
-        'Commits will only be announced the first time they are seen.'
-    ))
+    distinct_only = wtf_fields.BooleanField(
+        'Distinct Commits Only',
+        validators=[
+            wtf_validators.Optional()
+        ],
+        default=True,
+        description=(
+            'Commits will only be announced the first time they are seen.'
+        )
+    )
 
 
 def _create_push_summary(project_name, j, config):
