@@ -1,0 +1,5 @@
+hook: notifico/services/hooks/**/*
+UI:
+  - notifico/templates/**/*
+  - notifico/services/hooks/templates/*
+tests: tests/**/*
