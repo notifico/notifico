@@ -55,16 +55,16 @@
                 <li class="{{ active('public.landing') }}">
                   <a href="/"><i class="icon-home"></i> Home</a>
                 </li>
-                {% if g.user %}
+                {% if current_user.is_authenticated %}
                 <li class="{{ active('projects.') }}">
-                  <a href="{{ url_for('projects.dashboard', u=g.user.username) }}">
+                  <a href="{{ url_for('projects.dashboard', u=current_user.username) }}">
                     <i class="icon-th"></i> Projects
                   </a>
                 </li>
                 <!-- User settings and actions  -->
                 <li class="dropdown {{ active('account.') }}">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                      <i class="icon-user"></i> {{ g.user.username }} <i class="icon-angle-down"></i> 
+                      <i class="icon-user"></i> {{ current_user.username }} <i class="icon-angle-down"></i> 
                   </a>
                   <ul class="dropdown-menu">
                     <li>

@@ -9,7 +9,7 @@ from notifico.services.hooks import HookService
 from notifico.services.hooks.github import GithubHook
 
 
-class TravisConfigForm(wtf.Form):
+class TravisConfigForm(wtf.FlaskForm):
     gh_user = wtf_fields.TextField('GitHub username', validators=[
         wtf_validators.Required(),
         wtf_validators.Length(max=40)

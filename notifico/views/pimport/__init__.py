@@ -5,14 +5,13 @@ from itertools import chain
 from flask import (
     Blueprint,
     render_template,
-    g,
     url_for,
     redirect,
     request,
     current_app
 )
 import flask_wtf as wtf
-from flask_login import login_required
+from flask_login import login_required, current_user
 from wtforms import fields as wtf_fields
 from github import Github, GithubException
 
@@ -22,7 +21,7 @@ from notifico.models import AuthToken, Project, Hook, Channel
 pimport = Blueprint('pimport', __name__, template_folder='templates')
 
 
-class GithubForm(wtf.Form):
+class GithubForm(wtf.FlaskForm):
     update_projects = wtf_fields.BooleanField(
         'Update Projects',
         default=True,
@@ -75,14 +74,14 @@ def github():
         result = r.json()
         token = AuthToken.new(result['access_token'], 'github')
         db.session.add(token)
-        g.user.tokens.append(token)
+        current_user.tokens.append(token)
         db.session.commit()
         return redirect(url_for('.github'))
 
     # Check to see if the user has previously authenticated.
     access_token = AuthToken.query.filter_by(
         name='github',
-        owner_id=g.user.id
+        owner_id=current_user.id
     ).first()
 
     if access_token is None:
@@ -118,10 +117,10 @@ def github():
             # token and refresh.
             access_token = AuthToken.query.filter_by(
                 name='github',
-                owner_id=g.user.id
+                owner_id=current_user.id
             ).first()
             if access_token:
-                g.user.tokens.remove(access_token)
+                current_user.tokens.remove(access_token)
                 db.session.delete(access_token)
                 db.session.commit()
             return redirect(request.path)
@@ -146,15 +145,15 @@ def github():
                 continue
 
             # Make sure this project doesn't already exists.
-            p = Project.by_name_and_owner(repo.name, g.user)
+            p = Project.by_name_and_owner(repo.name, current_user)
             if p is None:
                 p = Project.new(
                     repo.name,
                     public=not repo.private,
                     website=repo.homepage
                 )
-                p.full_name = '{0}/{1}'.format(g.user.username, p.name)
-                g.user.projects.append(p)
+                p.full_name = '{0}/{1}'.format(current_user.username, p.name)
+                current_user.projects.append(p)
                 db.session.add(p)
                 # We need to commit to generate the project.id which is
                 # used for the following steps.

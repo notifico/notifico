@@ -4,7 +4,6 @@ import json
 from flask import (
     Blueprint,
     render_template,
-    g,
     redirect,
     current_app,
     url_for,
@@ -14,7 +13,7 @@ from flask import (
     request,
     flash
 )
-from flask_login import login_required, login_user, logout_user
+from flask_login import login_required, login_user, logout_user, current_user
 from notifico.db import db
 from notifico.models import User, AuthToken
 from notifico.services import reset, background
@@ -35,7 +34,7 @@ _reserved = ('new',)
 
 @account.route('/login', methods=['GET', 'POST'])
 def login():
-    if g.user:
+    if current_user.is_authenticated:
         return redirect(url_for('public.landing'))
 
     form = UserLoginForm()
@@ -180,7 +179,7 @@ def register():
     If new user registrations are enabled, provides a registration form
     and validation.
     """
-    if g.user:
+    if current_user.is_authenticated:
         return redirect(url_for('public.landing'))
 
     # Make sure this instance is allowing new users.
@@ -211,7 +210,7 @@ def settings(do=None):
 
     if do == 'p' and password_form.validate_on_submit():
         # Change the users password.
-        g.user.password = password_form.password.data
+        current_user.password = password_form.password.data
         db.session.commit()
         return redirect(url_for('.settings'))
     elif do == 'd' and delete_form.validate_on_submit():
@@ -222,8 +221,8 @@ def settings(do=None):
         if '_ue' in session:
             del session['_ue']
         # Remove the user from the DB.
-        g.user.projects.order_by(False).delete()
-        db.session.delete(g.user)
+        current_user.projects.order_by(False).delete()
+        db.session.delete(current_user)
         db.session.commit()
 
         return redirect(url_for('.login'))
@@ -244,7 +243,7 @@ def user_export():
     """
     response = make_response(
         json.dumps(
-            g.user.export(), sort_keys=True, indent=4
+            current_user.export(), sort_keys=True, indent=4
         )
     )
     response.headers['Content-Type'] = 'application/json'
@@ -264,7 +263,7 @@ def tokens(tid=None):
             # The token no longer exists.
             return abort(404)
 
-        if t.owner.id != g.user.id:
+        if t.owner.id != current_user.id:
             # Forbidden, you don't own this token.
             return abort(403)
 

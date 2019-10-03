@@ -82,9 +82,10 @@ class User(db.Model, UserMixin):
         """
         Returns a hashed password from `password` and `salt`.
         """
-        return hashlib.sha256(
-            salt.encode('utf-8') + password.strip().encode('utf-8')
-        ).hexdigest()
+        h = hashlib.sha256()
+        h.update(salt)
+        h.update(password.strip().encode('utf-8'))
+        return h.hexdigest()
 
     @hybrid_property
     def password(self):
@@ -137,10 +138,6 @@ class User(db.Model, UserMixin):
         q = self.projects.order_by(False).order_by('-message_count')
         q = q.limit(limit)
         return q
-
-    def in_group(self, name):
-        # FIXME: Deprecated
-        return False
 
     def export(self):
         """

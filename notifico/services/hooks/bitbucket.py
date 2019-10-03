@@ -7,7 +7,7 @@ from wtforms import validators as wtf_validators
 from notifico.services.hooks import HookService
 
 
-class BitbucketConfigForm(wtf.Form):
+class BitbucketConfigForm(wtf.FlaskForm):
     branches = wtf_fields.TextField('Branches', validators=[
         wtf_validators.Optional(),
         wtf_validators.Length(max=1024)

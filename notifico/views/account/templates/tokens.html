@@ -7,7 +7,7 @@
     <p>OAuth tokens are used by Notifico to authenticate with 3rd party services on
       your behalf. You may delete these at any time to erase them from {{ site_label }}.
       They can simply be re-added later if you require them again.</p>
-    {% if g.user.tokens.count() == 0 %}
+    {% if current_user.tokens.count() == 0 %}
     <div class="alert alert-info">
       You do not have any services authenticated with Notifico.
     </div>
@@ -21,7 +21,7 @@
         </tr>
       </thead>
       <tbody>
-      {% for token in g.user.tokens %}
+      {% for token in current_user.tokens %}
         <tr>
           <td>{{ token.name }}</td>
           <td>{{ token.created }}</td>

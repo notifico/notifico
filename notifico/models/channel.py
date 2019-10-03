@@ -64,14 +64,9 @@ class Channel(db.Model):
         """
         from notifico.models import Project
 
-        if user and user.in_group('admin'):
-            # We don't do any filtering for admins,
-            # who should have full visibility.
-            pass
-        else:
-            q = q.join(Channel.project).filter(
-                Project.public.is_(True),
-                Channel.public.is_(True)
-            )
+        q = q.join(Channel.project).filter(
+            Project.public.is_(True),
+            Channel.public.is_(True)
+        )
 
         return q

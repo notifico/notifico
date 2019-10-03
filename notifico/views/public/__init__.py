@@ -2,9 +2,9 @@
 from flask import (
     Blueprint,
     render_template,
-    g,
     request
 )
+from flask_login import current_user
 from flask_sqlalchemy import Pagination
 from sqlalchemy import func, text
 
@@ -24,7 +24,7 @@ def landing():
     """
     # Find the 10 latest public projects.
     new_projects = (
-        Project.visible(Project.query, user=g.user)
+        Project.visible(Project.query, user=current_user)
         .order_by(False)
         .order_by(Project.created.desc())
     ).paginate(1, 10, False)
@@ -48,7 +48,7 @@ def networks():
             Channel.host,
             func.count(func.distinct(Channel.channel)).label('di_count'),
             func.count(Channel.channel).label('count')
-        ), user=g.user)
+        ), user=current_user)
         .group_by(Channel.host)
         .order_by(text('di_count desc'))
     )
@@ -70,7 +70,7 @@ def network(network):
 
     q = Channel.visible(
         Channel.query.filter(Channel.host == network),
-        user=g.user
+        user=current_user
     ).order_by(Channel.created.desc())
 
     pagination = q.paginate(page, per_page, False)
@@ -89,7 +89,7 @@ def projects(page=1):
     per_page = min(int(request.args.get('l', 25)), 100)
     sort_by = request.args.get('s', 'created')
 
-    q = Project.visible(Project.query, user=g.user).order_by(False)
+    q = Project.visible(Project.query, user=current_user).order_by(False)
     q = q.order_by({
         'created': Project.created.desc(),
         'messages': Project.message_count.desc()

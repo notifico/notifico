@@ -8,7 +8,7 @@
     for the now-defunct <a href="http://cia.vc">cia.vc</a> service. Notifico receives 
     messages from services and scripts and delivers them to IRC channels.
   </p>
-  {% if not g.user %}
+  {% if not current_user.is_authenticated %}
   <p>
     <a class="btn btn-success btn-large" href="{{ url_for('account.register') }}">
       <i class="icon-plus"></i> Sign Up

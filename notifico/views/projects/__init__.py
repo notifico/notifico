@@ -3,7 +3,6 @@ from functools import wraps
 from flask import (
     Blueprint,
     render_template,
-    g,
     redirect,
     url_for,
     abort,
@@ -11,7 +10,7 @@ from flask import (
     current_app
 )
 import flask_wtf as wtf
-from flask_login import login_required
+from flask_login import login_required, current_user
 from wtforms import fields as wtf_fields
 from wtforms import validators as wtf_validators
 
@@ -21,7 +20,7 @@ from notifico.models import User, Project, Hook, Channel
 projects = Blueprint('projects', __name__, template_folder='templates')
 
 
-class ProjectDetailsForm(wtf.Form):
+class ProjectDetailsForm(wtf.FlaskForm):
     name = wtf_fields.TextField('Project Name', validators=[
         wtf_validators.Required(),
         wtf_validators.Length(1, 50),
@@ -38,23 +37,23 @@ class ProjectDetailsForm(wtf.Form):
     ])
 
 
-class HookDetailsForm(wtf.Form):
+class HookDetailsForm(wtf.FlaskForm):
     service_id = wtf_fields.SelectField('Service', validators=[
         wtf_validators.Required()
     ], coerce=int)
 
 
-class PasswordConfirmForm(wtf.Form):
+class PasswordConfirmForm(wtf.FlaskForm):
     password = wtf_fields.PasswordField('Password', validators=[
         wtf_validators.Required()
     ])
 
     def validate_password(form, field):
-        if not User.login(g.user.username, field.data):
+        if not User.login(current_user.username, field.data):
             raise wtf_validators.ValidationError('Your password is incorrect.')
 
 
-class ChannelDetailsForm(wtf.Form):
+class ChannelDetailsForm(wtf.FlaskForm):
     channel = wtf_fields.TextField('Channel', validators=[
         wtf_validators.Required(),
         wtf_validators.Length(min=1, max=80)
@@ -109,7 +108,7 @@ def dashboard(u):
         # No such user exists.
         return abort(404)
 
-    is_owner = (g.user and g.user.id == u.id)
+    is_owner = (current_user and current_user.id == u.id)
 
     # Get all projects by decending creation date.
     projects = (
@@ -141,7 +140,7 @@ def new():
     """
     form = ProjectDetailsForm()
     if form.validate_on_submit():
-        p = Project.by_name_and_owner(form.name.data, g.user)
+        p = Project.by_name_and_owner(form.name.data, current_user)
         if p:
             form.name.errors = [
                 wtf.ValidationError('Project name must be unique.')
@@ -152,8 +151,8 @@ def new():
                 public=form.public.data,
                 website=form.website.data
             )
-            p.full_name = '{0}/{1}'.format(g.user.username, p.name)
-            g.user.projects.append(p)
+            p.full_name = '{0}/{1}'.format(current_user.username, p.name)
+            current_user.projects.append(p)
             db.session.add(p)
 
             if p.public:
@@ -169,7 +168,7 @@ def new():
 
             db.session.commit()
 
-            return redirect(url_for('.details', u=g.user.username, p=p.name))
+            return redirect(url_for('.details', u=current_user.username, p=p.name))
 
     return render_template('new_project.html', form=form)
 
@@ -181,14 +180,14 @@ def edit_project(u, p):
     """
     Edit an existing project.
     """
-    if p.owner.id != g.user.id:
+    if p.owner.id != current_user.id:
         # Project isn't public and the viewer isn't the project owner.
         # (403 Forbidden)
         return abort(403)
 
     form = ProjectDetailsForm(obj=p)
     if form.validate_on_submit():
-        old_p = Project.by_name_and_owner(form.name.data, g.user)
+        old_p = Project.by_name_and_owner(form.name.data, current_user)
         if old_p and old_p.id != p.id:
             form.name.errors = [
                 wtf.ValidationError('Project name must be unique.')
@@ -197,7 +196,7 @@ def edit_project(u, p):
             p.name = form.name.data
             p.website = form.website.data
             p.public = form.public.data
-            p.full_name = '{0}/{1}'.format(g.user.username, p.name)
+            p.full_name = '{0}/{1}'.format(current_user.username, p.name)
             db.session.commit()
             return redirect(url_for('.dashboard', u=u.username))
 
@@ -215,7 +214,7 @@ def delete_project(u, p):
     """
     Delete an existing project.
     """
-    if p.owner.id != g.user.id:
+    if p.owner.id != current_user.id:
         # Project isn't public and the viewer isn't the project owner.
         # (403 Forbidden)
         return abort(403)
@@ -234,10 +233,10 @@ def details(u, p):
     """
     Show the details for an existing project.
     """
-    if not p.can_see(g.user):
+    if not p.can_see(current_user):
         return redirect(url_for('public.landing'))
 
-    can_modify = p.can_modify(g.user)
+    can_modify = p.can_modify(current_user)
 
     visible_channels = p.channels
     if not can_modify:
@@ -262,7 +261,7 @@ def details(u, p):
 @login_required
 @project_action
 def new_hook(u, p, sid):
-    if p.owner.id != g.user.id:
+    if p.owner.id != current_user.id:
         # Project isn't public and the viewer isn't the project owner.
         # (403 Forbidden)
         return abort(403)
@@ -298,7 +297,7 @@ def new_hook(u, p, sid):
 @login_required
 @project_action
 def edit_hook(u, p, hid):
-    if p.owner.id != g.user.id:
+    if p.owner.id != current_user.id:
         return abort(403)
 
     h = Hook.query.get(hid)
@@ -306,7 +305,7 @@ def edit_hook(u, p, hid):
         # You can't edit a hook that doesn't exist!
         return abort(404)
 
-    if h.project.owner.id != g.user.id:
+    if h.project.owner.id != current_user.id:
         # You can't edit a hook that isn't yours!
         return abort(403)
 
@@ -377,7 +376,7 @@ def delete_hook(u, p, hid):
         # Project doesn't exist (404 Not Found)
         return abort(404)
 
-    if p.owner.id != g.user.id or h.project.id != p.id:
+    if p.owner.id != current_user.id or h.project.id != p.id:
         # Project isn't public and the viewer isn't the project owner.
         # (403 Forbidden)
         return abort(403)
@@ -399,7 +398,7 @@ def delete_hook(u, p, hid):
 @login_required
 @project_action
 def new_channel(u, p):
-    if p.owner.id != g.user.id:
+    if p.owner.id != current_user.id:
         # Project isn't public and the viewer isn't the project owner.
         # (403 Forbidden)
         return abort(403)
@@ -455,7 +454,7 @@ def delete_channel(u, p, cid):
         # Project or channel doesn't exist (404 Not Found)
         return abort(404)
 
-    if c.project.owner.id != g.user.id or c.project.id != p.id:
+    if c.project.owner.id != current_user.id or c.project.id != p.id:
         # Project isn't public and the viewer isn't the project owner.
         # (403 Forbidden)
         return abort(403)

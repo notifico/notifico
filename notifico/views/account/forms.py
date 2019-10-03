@@ -1,4 +1,4 @@
-from flask import g
+from flask_login import current_user
 import flask_wtf as wtf
 from wtforms import fields as wtf_fields
 from wtforms import validators as wtf_validators
@@ -7,7 +7,7 @@ from notifico.models import User
 from notifico.services import reset
 
 
-class UserRegisterForm(wtf.Form):
+class UserRegisterForm(wtf.FlaskForm):
     username = wtf_fields.TextField('Username', validators=[
         wtf_validators.Required(),
         wtf_validators.Length(min=2, max=50),
@@ -38,7 +38,7 @@ class UserRegisterForm(wtf.Form):
             )
 
 
-class UserLoginForm(wtf.Form):
+class UserLoginForm(wtf.FlaskForm):
     username = wtf_fields.TextField('Username', validators=[
         wtf_validators.Required()
     ])
@@ -53,7 +53,7 @@ class UserLoginForm(wtf.Form):
             )
 
 
-class UserPasswordForm(wtf.Form):
+class UserPasswordForm(wtf.FlaskForm):
     old = wtf_fields.PasswordField('Old Password', validators=[
         wtf_validators.Required()
     ])
@@ -65,11 +65,11 @@ class UserPasswordForm(wtf.Form):
     confirm = wtf_fields.PasswordField('Confirm Password')
 
     def validate_old(form, field):
-        if not User.login(g.user.username, field.data):
+        if not User.login(current_user.username, field.data):
             raise wtf_validators.ValidationError('Old Password is incorrect.')
 
 
-class UserDeleteForm(wtf.Form):
+class UserDeleteForm(wtf.FlaskForm):
     password = wtf_fields.PasswordField('Password', validators=[
         wtf_validators.Required(),
         wtf_validators.Length(5),
@@ -78,11 +78,11 @@ class UserDeleteForm(wtf.Form):
     confirm = wtf_fields.PasswordField('Confirm Password')
 
     def validate_password(form, field):
-        if not User.login(g.user.username, field.data):
+        if not User.login(current_user.username, field.data):
             raise wtf_validators.ValidationError('Password is incorrect.')
 
 
-class UserForgotForm(wtf.Form):
+class UserForgotForm(wtf.FlaskForm):
     username = wtf_fields.TextField('Username', validators=[
         wtf_validators.Required()
     ])
@@ -99,7 +99,7 @@ class UserForgotForm(wtf.Form):
             )
 
 
-class UserResetForm(wtf.Form):
+class UserResetForm(wtf.FlaskForm):
     password = wtf_fields.PasswordField('New Password', validators=[
         wtf_validators.Required(),
         wtf_validators.Length(5),

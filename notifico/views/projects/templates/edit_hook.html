@@ -33,7 +33,7 @@ $(document).ready(function(){
           {% endif %}
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="{{ url_for('.details', u=g.user.username, p=project.name) }}" class="btn">Cancel</a>
+            <a href="{{ url_for('.details', u=current_user.username, p=project.name) }}" class="btn">Cancel</a>
           </div>
         </form>
       </div>

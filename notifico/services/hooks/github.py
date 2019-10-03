@@ -103,7 +103,7 @@ class EventSelectField(wtf_fields.SelectMultipleField):
         return wtf_fields.SelectMultipleField.__call__(self, *args, **kwargs)
 
 
-class GithubConfigForm(wtf.Form):
+class GithubConfigForm(wtf.FlaskForm):
     branches = wtf_fields.TextField('Branches', validators=[
         wtf_validators.Optional(),
         wtf_validators.Length(max=1024)

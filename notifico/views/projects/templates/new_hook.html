@@ -25,7 +25,7 @@ $(document).ready(function(){
           <li class="nav-header">Available Services</li>
           {% for s in services.values() %}
           <li {% if s.SERVICE_ID == service.SERVICE_ID %}class="active"{% endif %}>
-            <a href="{{ url_for('.new_hook', u=g.user.username, p=project.name, sid=s.SERVICE_ID) }}">
+            <a href="{{ url_for('.new_hook', u=current_user.username, p=project.name, sid=s.SERVICE_ID) }}">
               {{ s.SERVICE_NAME }}
             </a>
           </li>
@@ -48,7 +48,7 @@ $(document).ready(function(){
               {% endif %}
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create Hook</button>
-                <a href="{{ url_for('.details', u=g.user.username, p=project.name) }}" class="btn">Cancel</a>
+                <a href="{{ url_for('.details', u=current_user.username, p=project.name) }}" class="btn">Cancel</a>
               </div>
             </form>
           </div>

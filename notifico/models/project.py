@@ -36,7 +36,7 @@ class Project(db.Model):
 
     @classmethod
     def by_name_and_owner(cls, name, owner):
-        return cls.query(
+        return cls.query.filter(
             cls.owner_id == owner.id,
             func.lower(cls.name) == func.lower(name)
         ).first()
@@ -47,11 +47,7 @@ class Project(db.Model):
         Modifies the sqlalchemy query `q` to only show projects accessible
         to `user`. If `user` is ``None``, only shows public projects.
         """
-        if user and user.in_group('admin'):
-            # We don't do any filtering for admins,
-            # who should have full visibility.
-            pass
-        elif user:
+        if user.is_authenticated:
             # We only show the projects that are either public,
             # or are owned by `user`.
             q = q.filter(or_(
@@ -73,9 +69,6 @@ class Project(db.Model):
         if self.public:
             # Public projects are always visible.
             return True
-        if user and user.in_group('admin'):
-            # Admins can always see projects.
-            return True
         elif self.is_owner(user):
             # The owner of the project can always see it.
             return True
@@ -86,10 +79,4 @@ class Project(db.Model):
         """
         Returns ``True`` if `user` can modify this project.
         """
-        if user and user.in_group('admin'):
-            # Admins can always modify projects.
-            return True
-        elif self.is_owner(user):
-            return True
-
-        return False
+        return self.is_owner(user)

@@ -14,7 +14,7 @@ handler = XMLRPCHandler('hub')
 hub = handler.namespace('hub')
 
 
-class CIAConfigForm(wtf.Form):
+class CIAConfigForm(wtf.FlaskForm):
     use_colors = wtf_fields.BooleanField('Use Colors', validators=[
         wtf_validators.Optional()
     ], default=True, description=(
