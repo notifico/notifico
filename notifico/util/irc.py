@@ -1,8 +1,6 @@
-# -*- coding: utf8 -*-
 """
 Generic IRC utilities.
 """
-__all__ = ('mirc_colors', 'strip_mirc_colors')
 import re
 
 #: Precompiled regex for matching mIRC color codes.
@@ -68,14 +66,13 @@ def to_html(message):
             '<span style="color: {fore};">{text}</span>'.format(
                 text=m.group(3),
                 fore=c_to_c.get(int(m.group(1)), 'black"')
-        ))
+            )
+        )
 
     m = []
     for line in message.split('\n'):
         m.append(
             re.sub(
-                #r'\x03(\d{1,2}),?(\d{1,2})(.*?)\x03',
-                #r'\x03([0-9]{1,2}),?([0-9]{1,2})(.*?)\x03',
                 r'\x03(\d{1,2})(,[0-9]{1,2})?(.*?)\x03',
                 _mirc_to_span,
                 escape(line),

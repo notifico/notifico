@@ -1,18 +1,11 @@
 import importlib
-from functools import wraps
 
 from redis import Redis
 from celery import Celery
-from flask import (
-    Flask,
-    g,
-    redirect,
-    url_for
-)
+from flask import Flask
 from flask_caching import Cache
 from flask_mail import Mail
 from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 
 from notifico.db import db

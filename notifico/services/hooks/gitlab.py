@@ -55,7 +55,9 @@ def action_filter(category, action_key='action'):
     def decorator(f):
         @wraps(f)
         def wrapper(cls, user, request, hook, json):
-            event = json['object_attributes'][action_key] if action_key else None
+            event = None
+            if action_key:
+                event = json['object_attributes'][action_key]
             if is_event_allowed(hook.config, category, event):
                 return f(cls, user, request, hook, json)
 
@@ -128,12 +130,18 @@ class GitlabConfigForm(wtf.Form):
     ], default=True, description=(
         'If checked, changes to tags will be shown.'
     ))
-    full_project_name = wtf_fields.BooleanField('Full Project Name', validators=[
-        wtf_validators.Optional()
-    ], default=False, description=(
-        'If checked, show the full gitlab project name (ex: tktech/notifico)'
-        ' instead of the Notifico project name (ex: notifico)'
-    ))
+    full_project_name = wtf_fields.BooleanField(
+        'Full Project Name',
+        validators=[
+            wtf_validators.Optional()
+        ],
+        default=False,
+        description=(
+            'If checked, show the full gitlab project name '
+            '(ex: tktech/notifico) instead of the Notifico project name '
+            '(ex: notifico)'
+        )
+    )
     title_only = wtf_fields.BooleanField('Title Only', validators=[
         wtf_validators.Optional()
     ], default=False, description=(
@@ -251,7 +259,7 @@ def _create_push_final_summary(project_name, j, config):
     ))
 
     line.append(u'... and {count} more commits.'.format(
-        count = len(original.get('commits', [])) - line_limit
+        count=len(original.get('commits', [])) - line_limit
     ))
 
     return u' '.join(line)

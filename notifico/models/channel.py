@@ -70,8 +70,8 @@ class Channel(db.Model):
             pass
         else:
             q = q.join(Channel.project).filter(
-                Project.public == True,
-                Channel.public == True
+                Project.public.is_(True),
+                Channel.public.is_(True)
             )
 
         return q

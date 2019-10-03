@@ -48,8 +48,8 @@ def top_networks(limit=20):
             func.count(func.distinct(Channel.channel)).label('count'),
         )
         .join(Channel.project).filter(
-            Project.public == True,
-            Channel.public == True
+            Project.public.is_(True),
+            Channel.public.is_(True)
         )
         .group_by(Channel.host)
         .order_by(text('count desc'))

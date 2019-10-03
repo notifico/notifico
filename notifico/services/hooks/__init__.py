@@ -130,4 +130,3 @@ class HookService(object):
         not use the standard hook-recieve endpoint.
         """
         raise NotImplementedError()
-

@@ -1,6 +1,7 @@
 import re
 import json
 import requests
+import requests.exceptions as rexc
 
 import flask_wtf as wtf
 from wtforms import fields as wtf_fields
@@ -124,7 +125,8 @@ class GithubConfigForm(wtf.Form):
         ('check_run_conclusion_neutral',   'Check Run conclusion: neutral'),
         ('check_run_conclusion_cancelled', 'Check Run conclusion: cancelled'),
         ('check_run_conclusion_timed_out', 'Check Run conclusion: timed out'),
-        ('check_run_conclusion_action_required',   'Check Run conclusion: action required'),
+        ('check_run_conclusion_action_required',
+         'Check Run conclusion: action required'),
         ('create_branch',              'Create branch'),
         ('create_tag',                 'Create tag'),
         ('delete_branch',              'Delete branch'),
@@ -438,11 +440,15 @@ class GithubHook(HookService):
             '{issue_type} {GREEN}#{num}{RESET}: {title} - {PINK}{url}{RESET}'
         )
 
+        issue_type = 'issue'
+        if 'pull_request' in json['issue']:
+            issue_type = 'pull request'
+
         yield fmt_string.format(
             name=json['repository']['name'],
             who=json['sender']['login'],
             action=action,
-            issue_type='pull request' if 'pull_request' in json['issue'] else 'issue',
+            issue_type=issue_type,
             num=json['issue']['number'],
             title=json['issue']['title'],
             url=GithubHook.shorten(json['comment']['html_url']),
@@ -731,7 +737,6 @@ class GithubHook(HookService):
                 '{PINK}{url}{RESET}'
             )
 
-
         yield fmt_string.format(
             name=json['repository']['name'],
             status=json['check_run']['status'],
@@ -923,7 +928,7 @@ class GithubHook(HookService):
             r = requests.post('https://git.io', data={
                 'url': url
             }, timeout=4.0)
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        except (rexc.ConnectionError, rexc.Timeout):
             # Ignore these errors since we can't do anything about them.
             return url
         except Exception:
