@@ -6,7 +6,7 @@ __all__ = ('mirc_colors', 'strip_mirc_colors')
 import re
 
 #: Precompiled regex for matching mIRC color codes.
-_STRIP_R = re.compile('\x03(?:\d{1,2}(?:,\d{1,2})?)?', re.UNICODE)
+_STRIP_R = re.compile('\x03(?:\\d{1,2}(?:,\\d{1,2})?)?', re.UNICODE)
 
 #: Common mIRC color codes.
 _colors = dict(

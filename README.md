@@ -1,43 +1,22 @@
 # Notifico!
 
 Notifico is my personal open source ([MIT](http://en.wikipedia.org/wiki/MIT_License))
-replacement to the now-defunct http://cia.vc service with my own little spin on things.
+replacement to the now-defunct http://cia.vc service.
 
 ## Installation
 
-### Dependencies 
-
-* python 2.x / virtualenv / pip
-* redis
-* Either:
-  * Install python C headers and a working C compiler and let pip take care of it.
-  * Install the following python libraries through your package manager: `gevent sqlalchemy pycrypto markupsafe celery`
-
-For debian based systems, that would be:
-
-    apt-get install python python-dev python-pip python-virtualenv redis-server
-    apt-get install python-gevent python-sqlalchemy python-crypto python-markupsafe python-celery
-
-For RHEL/CentOS:
-
-    yum install epel-release
-    yum install redis git python python-devel python-pip python-virtualenv
-    yum install python-gevent python-sqlalchemy python-markupsafe python-celery python-crypto2.6
-
 ### Setup
 
-First, create a virtualenv:
+First, create a virtualenv to keep dependencies self-contained:
 
-    virtualenv2 --system-site-packages notifico-env
-    # or "virtualenv" instead of "virtualenv2"
-
-    source ./notifico-env/bin/activate
+    python -m venv notifico-env
+    source notifico-env/bin/activate
 
 The virtualenv step can be skipped to install all dependencies globally.
 However, this is not recommended, and requires running the following step as
 root.
 
-Next, install notifico and all its dependencies.
+Next, install notifico and all of its dependencies.
 
     python setup.py install
 
