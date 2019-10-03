@@ -2,7 +2,7 @@
 __all__ = ('AuthToken',)
 import datetime
 
-from notifico import db
+from notifico.db import db
 
 
 class AuthToken(db.Model):

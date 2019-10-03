@@ -1,10 +1,8 @@
-# -*- coding: utf8 -*-
-__all__ = ('Channel',)
 import datetime
 
 from sqlalchemy import func, text
 
-from notifico import db
+from notifico.db import db
 from notifico.models.bot import BotEvent
 
 

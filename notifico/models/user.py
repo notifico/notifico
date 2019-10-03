@@ -3,37 +3,70 @@ import base64
 import hashlib
 import datetime
 
+from flask_login import UserMixin
+from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
 
-from notifico import db
-from notifico.models import CaseInsensitiveComparator
+from notifico.db import db
 
 
-class User(db.Model):
+user_roles = db.Table(
+    'user_roles',
+    db.metadata,
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('role_id', db.Integer, db.ForeignKey('role.key'))
+)
+
+
+class Role(db.Model):
+    __tablename__ = 'role'
+
+    key = db.Column(db.Unicode(15), primary_key=True)
+
+    def __init__(self, key: str):
+        self.key = key
+
+    @classmethod
+    def get_or_create(cls, key: str):
+        role = cls.query.filter_by(key=key).first()
+        return role if role else Role(key)
+
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
-    # ---
-    # Required Fields
-    # ---
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(255), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    _password = db.Column('password', db.String(255), nullable=False)
     salt = db.Column(db.String(8), nullable=False)
     joined = db.Column(db.TIMESTAMP(), default=datetime.datetime.utcnow)
 
-    # ---
-    # Public Profile Fields
-    # ---
     company = db.Column(db.String(255))
     website = db.Column(db.String(255))
     location = db.Column(db.String(255))
+
+    _roles = db.relationship(
+        'Role',
+        secondary=user_roles,
+        backref='users',
+        collection_class=set
+    )
+
+    roles = association_proxy(
+        '_roles',
+        'key',
+        creator=Role.get_or_create
+    )
+
+    def get_id(self):
+        return str(self.id)
 
     @classmethod
     def new(cls, username, email, password):
         u = cls()
         u.email = email.lower().strip()
-        u.salt = cls._create_salt()
-        u.password = cls._hash_password(password, u.salt)
+        u.password = password
         u.username = username.strip()
         return u
 
@@ -53,25 +86,34 @@ class User(db.Model):
             salt.encode('utf-8') + password.strip().encode('utf-8')
         ).hexdigest()
 
-    def set_password(self, new_password):
+    @hybrid_property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, plaintext):
         self.salt = self._create_salt()
-        self.password = self._hash_password(new_password, self.salt)
+        self._password = self._hash_password(plaintext, self.salt)
 
     @classmethod
     def by_email(cls, email):
         return cls.query.filter_by(email=email.lower().strip()).first()
 
     @classmethod
-    def by_username(cls, username):
-        return cls.query.filter_by(username_i=username).first()
-
-    @classmethod
     def email_exists(cls, email):
         return cls.query.filter_by(email=email.lower().strip()).count() >= 1
 
     @classmethod
+    def by_username(cls, username):
+        return cls.query.filter(
+            func.lower(cls.username) == func.lower(username)
+        ).first()
+
+    @classmethod
     def username_exists(cls, username):
-        return cls.query.filter_by(username_i=username).count() >= 1
+        return cls.query.filter(
+            func.lower(cls.username) == func.lower(username)
+        ).count() >= 1
 
     @classmethod
     def login(cls, username, password):
@@ -88,10 +130,6 @@ class User(db.Model):
     def username_i(self):
         return self.username.lower()
 
-    @username_i.comparator
-    def username_i(cls):
-        return CaseInsensitiveComparator(cls.username)
-
     def active_projects(self, limit=5):
         """
         Return this users most active projets (by descending message count).
@@ -101,22 +139,8 @@ class User(db.Model):
         return q
 
     def in_group(self, name):
-        """
-        Returns ``True`` if this user is in the group `name`, otherwise
-        ``False``.
-        """
-        return any(g.name == name.lower() for g in self.groups)
-
-    def add_group(self, name):
-        """
-        Adds this user to the group `name` if not already in it. The group
-        will be created if needed.
-        """
-        if self.in_group(name):
-            # We're already in this group.
-            return
-
-        self.groups.append(Group.get_or_create(name=name))
+        # FIXME: Deprecated
+        return False
 
     def export(self):
         """
@@ -157,30 +181,3 @@ class User(db.Model):
         }
 
         return j
-
-
-class Group(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    name = db.Column(db.String(255), unique=True, nullable=False)
-
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    owner = db.relationship('User', backref=db.backref(
-        'groups', order_by=id, lazy='joined'
-    ))
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return '<Group({name!r})>'.format(name=self.name)
-
-    @classmethod
-    def get_or_create(cls, name):
-        name = name.lower()
-
-        g = cls.query.filter_by(name=name).first()
-        if not g:
-            g = Group(name=name)
-
-        return g

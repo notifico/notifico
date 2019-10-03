@@ -4,7 +4,8 @@ A collection of utility methods for common site statistics.
 """
 from sqlalchemy import func, text
 
-from notifico import db, cache
+from notifico.app import cache
+from notifico.db import db
 from notifico.models import Project, Channel, User
 
 

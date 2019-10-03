@@ -12,10 +12,11 @@ from flask import (
     current_app
 )
 import flask_wtf as wtf
+from flask_login import login_required
 from wtforms import fields as wtf_fields
 from github import Github, GithubException
 
-from notifico import db, user_required
+from notifico.db import db
 from notifico.models import AuthToken, Project, Hook, Channel
 
 pimport = Blueprint('pimport', __name__, template_folder='templates')
@@ -48,7 +49,7 @@ class GithubForm(wtf.Form):
 
 
 @pimport.route('/github', methods=['GET', 'POST'])
-@user_required
+@login_required
 def github():
     """
     Import/merge the users existing Github projects, optionally setting up

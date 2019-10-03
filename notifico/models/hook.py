@@ -4,7 +4,7 @@ import datetime
 
 from flask import current_app
 
-from notifico import db
+from notifico.db import db
 
 
 class Hook(db.Model):

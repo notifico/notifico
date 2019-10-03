@@ -2,7 +2,7 @@
 __all__ = ('BotEvent',)
 import datetime
 
-from notifico import db
+from notifico.db import db
 
 
 class BotEvent(db.Model):

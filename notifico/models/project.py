@@ -1,10 +1,8 @@
 import datetime
 
-from sqlalchemy import or_
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import func, or_
 
-from notifico import db
-from notifico.models import CaseInsensitiveComparator
+from notifico.db import db
 
 
 class Project(db.Model):
@@ -30,23 +28,18 @@ class Project(db.Model):
         c.website = website.strip() if website else None
         return c
 
-    @hybrid_property
-    def name_i(self):
-        return self.name.lower()
-
-    @name_i.comparator
-    def name_i(cls):
-        return CaseInsensitiveComparator(cls.name)
-
     @classmethod
     def by_name(cls, name):
-        return cls.query.filter_by(name_i=name).first()
+        return cls.query.filter(
+            func.lower(cls.name) == func.lower(name)
+        ).first()
 
     @classmethod
     def by_name_and_owner(cls, name, owner):
-        q = cls.query.filter(cls.owner_id == owner.id)
-        q = q.filter(cls.name_i == name)
-        return q.first()
+        return cls.query(
+            cls.owner_id == owner.id,
+            func.lower(cls.name) == func.lower(name)
+        ).first()
 
     @classmethod
     def visible(cls, q, user=None):
@@ -63,10 +56,10 @@ class Project(db.Model):
             # or are owned by `user`.
             q = q.filter(or_(
                 Project.owner_id == user.id,
-                Project.public == True
+                Project.public.is_(True)
             ))
         else:
-            q = q.filter(Project.public == True)
+            q = q.filter(Project.public.is_(True))
 
         return q
 

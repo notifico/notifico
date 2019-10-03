@@ -11,10 +11,11 @@ from flask import (
     current_app
 )
 import flask_wtf as wtf
+from flask_login import login_required
 from wtforms import fields as wtf_fields
 from wtforms import validators as wtf_validators
 
-from notifico import db, user_required
+from notifico.db import db
 from notifico.models import User, Project, Hook, Channel
 
 projects = Blueprint('projects', __name__, template_folder='templates')
@@ -133,7 +134,7 @@ def dashboard(u):
 
 
 @projects.route('/new', methods=['GET', 'POST'])
-@user_required
+@login_required
 def new():
     """
     Create a new project.
@@ -174,7 +175,7 @@ def new():
 
 
 @projects.route('/<u>/<p>/edit', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def edit_project(u, p):
     """
@@ -208,7 +209,7 @@ def edit_project(u, p):
 
 
 @projects.route('/<u>/<p>/delete', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def delete_project(u, p):
     """
@@ -258,7 +259,7 @@ def details(u, p):
 @projects.route('/<u>/<p>/hook/new', defaults={'sid': 10}, methods=[
     'GET', 'POST'])
 @projects.route('/<u>/<p>/hook/new/<int:sid>', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def new_hook(u, p, sid):
     if p.owner.id != g.user.id:
@@ -294,7 +295,7 @@ def new_hook(u, p, sid):
 
 
 @projects.route('/<u>/<p>/hook/edit/<int:hid>', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def edit_hook(u, p, hid):
     if p.owner.id != g.user.id:
@@ -365,7 +366,7 @@ def hook_receive(pid, key):
 
 
 @projects.route('/<u>/<p>/hook/delete/<int:hid>', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def delete_hook(u, p, hid):
     """
@@ -395,7 +396,7 @@ def delete_hook(u, p, hid):
 
 
 @projects.route('/<u>/<p>/channel/new', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def new_channel(u, p):
     if p.owner.id != g.user.id:
@@ -439,7 +440,7 @@ def new_channel(u, p):
 
 
 @projects.route('/<u>/<p>/channel/delete/<int:cid>', methods=['GET', 'POST'])
-@user_required
+@login_required
 @project_action
 def delete_channel(u, p, cid):
     """

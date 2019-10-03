@@ -8,7 +8,7 @@ from flask import (
 from flask_sqlalchemy import Pagination
 from sqlalchemy import func, text
 
-from notifico import db
+from notifico.db import db
 from notifico.services import stats
 from notifico.models import User, Channel, Project
 from notifico.services.hooks import HookService

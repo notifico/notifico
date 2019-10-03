@@ -6,7 +6,7 @@ from wtforms import fields as wtf_fields
 from wtforms import validators as wtf_validators
 from flask_xmlrpcre.xmlrpcre import XMLRPCHandler
 
-from notifico import db
+from notifico.db import db
 from notifico.services.hooks import HookService
 
 

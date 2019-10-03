@@ -1,6 +1,6 @@
 from flask_mail import Message
 
-from notifico import create_app, celery, mail
+from notifico.app import create_app, celery, mail
 
 
 @celery.task

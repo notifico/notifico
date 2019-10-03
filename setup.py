@@ -21,6 +21,7 @@ if __name__ == '__main__':
             'flask-xml-rpc-re',
             'Flask-Mail',
             'Flask-Caching',
+            'Flask-Login',
             'sqlalchemy',
             'oauth2',
             'redis',
@@ -32,7 +33,13 @@ if __name__ == '__main__':
             'raven',
             'docopt',
             'celery',
+            'click',
             'utopia @ https://github.com/notifico/utopia/tarball/master'
         ],
-        extras_require={"tests": ["pytest", "coverage"]}
+        extras_require={"tests": ["pytest", "coverage"]},
+        entry_points={
+            'console_scripts': [
+                'notifico = notifico.cli:cli'
+            ]
+        }
     )

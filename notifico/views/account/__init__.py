@@ -14,7 +14,8 @@ from flask import (
     request,
     flash
 )
-from notifico import db, user_required
+from flask_login import login_required, login_user, logout_user
+from notifico.db import db
 from notifico.models import User, AuthToken
 from notifico.services import reset, background
 from notifico.views.account.forms import (
@@ -32,44 +33,28 @@ account = Blueprint('account', __name__, template_folder='templates')
 _reserved = ('new',)
 
 
-@account.before_app_request
-def set_user():
-    g.user = None
-    if '_u' in session and '_uu' in session:
-        g.user = User.query.filter_by(
-            id=session['_u'],
-            username=session['_uu']
-        ).first()
-
-
 @account.route('/login', methods=['GET', 'POST'])
 def login():
-    """
-    Standard login form.
-    """
     if g.user:
         return redirect(url_for('public.landing'))
 
     form = UserLoginForm()
     if form.validate_on_submit():
         u = User.by_username(form.username.data)
-        session['_u'] = u.id
-        session['_uu'] = u.username
+        login_user(u)
+        flash('Welcome back!', category='success')
         return redirect(url_for('projects.dashboard', u=u.username))
 
     return render_template('login.html', form=form)
 
 
 @account.route('/logout')
-@user_required
+@login_required
 def logout():
     """
     Logout the current user.
     """
-    if '_u' in session:
-        del session['_u']
-    if '_uu' in session:
-        del session['_uu']
+    logout_user()
     return redirect(url_for('.login'))
 
 
@@ -168,7 +153,7 @@ def reset_pick_password():
 
     form = UserResetForm()
     if form.validate_on_submit():
-        u.set_password(form.password.data)
+        u.password = form.password.data
         db.session.commit()
 
         # The user has successfully reset their password,
@@ -216,7 +201,7 @@ def register():
 
 @account.route('/settings', methods=['GET', 'POST'])
 @account.route('/settings/<do>', methods=['GET', 'POST'])
-@user_required
+@login_required
 def settings(do=None):
     """
     Provides forms allowing a user to change various settings.
@@ -226,7 +211,7 @@ def settings(do=None):
 
     if do == 'p' and password_form.validate_on_submit():
         # Change the users password.
-        g.user.set_password(password_form.password.data)
+        g.user.password = password_form.password.data
         db.session.commit()
         return redirect(url_for('.settings'))
     elif do == 'd' and delete_form.validate_on_submit():
@@ -251,7 +236,7 @@ def settings(do=None):
 
 
 @account.route('/user.json')
-@user_required
+@login_required
 def user_export():
     """
     Provides the user, their projects, channels, and hooks as a JSON
@@ -268,7 +253,7 @@ def user_export():
 
 @account.route('/tokens/')
 @account.route('/tokens/<int:tid>')
-@user_required
+@login_required
 def tokens(tid=None):
     """
     Allows the user to view their OAuth tokens stored with Notifico.
