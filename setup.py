@@ -31,6 +31,8 @@ if __name__ == '__main__':
             'unidecode',
             'raven',
             'docopt',
-            'celery'
-        ]
+            'celery',
+            'utopia @ https://github.com/notifico/utopia/tarball/master'
+        ],
+        extras_require={"tests": ["pytest", "coverage"]}
     )
