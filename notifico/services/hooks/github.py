@@ -297,7 +297,7 @@ def _create_commit_summary(project_name, j, config):
         if prefer_username:
             attribute_to = author.get('username')
             if attribute_to is None:
-                attribute_to = author.get('username')
+                attribute_to = committer.get('username')
 
         if attribute_to is None:
             attribute_to = author.get('name')
