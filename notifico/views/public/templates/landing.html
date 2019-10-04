@@ -4,9 +4,9 @@
 <div class="landing-unit">
   <h1 class="landing-unit-title">Notifico</h1>
   <p class="lead">
-    Notifico is an <a href="https://github.com/TkTech/notifico">open-source</a> replacement
-    for the now-defunct <a href="http://cia.vc">cia.vc</a> service. Notifico receives 
-    messages from services and scripts and delivers them to IRC channels.
+    Notifico is an <a href="https://github.com/TkTech/notifico">open-source</a>
+    relay to deliver notifications to IRC channels. Notifico works with <a
+    href="{{ url_for("public.services") }}">many services</a>.
   </p>
   {% if not current_user.is_authenticated %}
   <p>

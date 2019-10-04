@@ -2,7 +2,8 @@
 from flask import (
     Blueprint,
     render_template,
-    request
+    request,
+    current_app
 )
 from flask_login import current_user
 from flask_sqlalchemy import Pagination
@@ -11,7 +12,6 @@ from sqlalchemy import func, text
 from notifico.db import db
 from notifico.services import stats
 from notifico.models import User, Channel, Project
-from notifico.services.hooks import HookService
 
 public = Blueprint('public', __name__, template_folder='templates')
 
@@ -126,8 +126,7 @@ def users(page=1):
 
 @public.route('/s/services')
 def services():
-    services = HookService.services
     return render_template(
         'services.html',
-        services=services
+        services=current_app.enabled_hooks
     )
