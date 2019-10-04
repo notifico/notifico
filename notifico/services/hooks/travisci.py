@@ -11,19 +11,19 @@ from notifico.services.hooks.github import GithubHook
 
 class TravisConfigForm(wtf.FlaskForm):
     gh_user = wtf_fields.TextField('GitHub username', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(max=40)
     ], description=(
         'Case-sensitive GitHub username of repository owner.'
     ))
     repo_name = wtf_fields.TextField('Repo name', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(max=100)
     ], description=(
         'Case-sensitive name of repository.'
     ))
     token = wtf_fields.TextField('Travis Token', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(max=1024)
     ], description=(
         'Used to authenticate incoming webhooks.<br>'

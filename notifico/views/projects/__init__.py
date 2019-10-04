@@ -22,7 +22,7 @@ projects = Blueprint('projects', __name__, template_folder='templates')
 
 class ProjectDetailsForm(wtf.FlaskForm):
     name = wtf_fields.TextField('Project Name', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(1, 50),
         wtf_validators.Regexp(r'^[a-zA-Z0-9_\-\.]*$', message=(
             'Project name must only contain a to z, 0 to 9, dashes'
@@ -39,13 +39,13 @@ class ProjectDetailsForm(wtf.FlaskForm):
 
 class HookDetailsForm(wtf.FlaskForm):
     service_id = wtf_fields.SelectField('Service', validators=[
-        wtf_validators.Required()
+        wtf_validators.DataRequired()
     ], coerce=int)
 
 
 class PasswordConfirmForm(wtf.FlaskForm):
     password = wtf_fields.PasswordField('Password', validators=[
-        wtf_validators.Required()
+        wtf_validators.DataRequired()
     ])
 
     def validate_password(form, field):
@@ -55,11 +55,11 @@ class PasswordConfirmForm(wtf.FlaskForm):
 
 class ChannelDetailsForm(wtf.FlaskForm):
     channel = wtf_fields.TextField('Channel', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(min=1, max=80)
     ])
     host = wtf_fields.TextField('Host', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(min=1, max=255)
     ], default='chat.freenode.net')
     port = wtf_fields.IntegerField('Port', validators=[

@@ -38,7 +38,7 @@ def create_app():
         # We should handle routing for static assets ourself (handy for
         # small and quick deployments).
         import os.path
-        from werkzeug import SharedDataMiddleware
+        from werkzeug.middleware.shared_data import SharedDataMiddleware
 
         app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
             '/': os.path.join(os.path.dirname(__file__), 'static')

@@ -9,7 +9,7 @@ from notifico.services import reset
 
 class UserRegisterForm(wtf.FlaskForm):
     username = wtf_fields.TextField('Username', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(min=2, max=50),
         wtf_validators.Regexp('^[a-zA-Z0-9_]*$', message=(
             'Username must only contain a to z, 0 to 9, and underscores.'
@@ -18,11 +18,11 @@ class UserRegisterForm(wtf.FlaskForm):
         'Your username is public and used as part of your project name.'
     ))
     email = wtf_fields.TextField('Email', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Email()
     ])
     password = wtf_fields.PasswordField('Password', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(5),
         wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
@@ -40,10 +40,10 @@ class UserRegisterForm(wtf.FlaskForm):
 
 class UserLoginForm(wtf.FlaskForm):
     username = wtf_fields.TextField('Username', validators=[
-        wtf_validators.Required()
+        wtf_validators.DataRequired()
     ])
     password = wtf_fields.PasswordField('Password', validators=[
-        wtf_validators.Required()
+        wtf_validators.DataRequired()
     ])
 
     def validate_password(form, field):
@@ -55,10 +55,10 @@ class UserLoginForm(wtf.FlaskForm):
 
 class UserPasswordForm(wtf.FlaskForm):
     old = wtf_fields.PasswordField('Old Password', validators=[
-        wtf_validators.Required()
+        wtf_validators.DataRequired()
     ])
     password = wtf_fields.PasswordField('Password', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(5),
         wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
@@ -71,7 +71,7 @@ class UserPasswordForm(wtf.FlaskForm):
 
 class UserDeleteForm(wtf.FlaskForm):
     password = wtf_fields.PasswordField('Password', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(5),
         wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
@@ -84,7 +84,7 @@ class UserDeleteForm(wtf.FlaskForm):
 
 class UserForgotForm(wtf.FlaskForm):
     username = wtf_fields.TextField('Username', validators=[
-        wtf_validators.Required()
+        wtf_validators.DataRequired()
     ])
 
     def validate_username(form, field):
@@ -101,7 +101,7 @@ class UserForgotForm(wtf.FlaskForm):
 
 class UserResetForm(wtf.FlaskForm):
     password = wtf_fields.PasswordField('New Password', validators=[
-        wtf_validators.Required(),
+        wtf_validators.DataRequired(),
         wtf_validators.Length(5),
         wtf_validators.EqualTo('confirm', 'Passwords do not match.'),
     ])
