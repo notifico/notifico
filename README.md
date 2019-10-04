@@ -1,7 +1,7 @@
 # Notifico!
 
-Notifico is my personal open source ([MIT](http://en.wikipedia.org/wiki/MIT_License))
-replacement to the now-defunct http://cia.vc service.
+Notifico is an open-source relay to deliver notifications to IRC channels.
+Notifico works with many 3rd party services such as GitLab and GitHub.
 
 ## Installation
 
